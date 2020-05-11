@@ -1,0 +1,8 @@
+CPXPARAM_TimeLimit                               7200
+CPXPARAM_Read_DataCheck                          1
+Tried aggregator 1 time.
+No LP presolve or aggregator reductions.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =            23.000000

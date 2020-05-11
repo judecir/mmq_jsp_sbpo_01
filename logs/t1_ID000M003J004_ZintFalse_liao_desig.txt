@@ -1,0 +1,10 @@
+CPXPARAM_TimeLimit                               7200
+CPXPARAM_Read_DataCheck                          1
+Tried aggregator 1 time.
+LP Presolve eliminated 11 rows and 0 columns.
+Reduced LP has 115 rows, 49 columns, and 326 nonzeros.
+Presolve time = 0.00 sec. (0.06 ticks)
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =            23.000000

@@ -1,0 +1,50 @@
+CPXPARAM_TimeLimit                               7200
+CPXPARAM_Read_DataCheck                          1
+CPXPARAM_Output_IntSolFilePrefix                 "solucoes/t1_ID000M003J004_ZintTrue_liao/sol"
+Tried aggregator 1 time.
+Reduced MIP has 30 rows, 49 columns, and 96 nonzeros.
+Reduced MIP has 18 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.04 ticks)
+Found incumbent of value 51.000000 after 0.00 sec. (0.16 ticks)
+Probing time = 0.00 sec. (0.01 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 30 rows, 49 columns, and 96 nonzeros.
+Reduced MIP has 18 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.05 ticks)
+Probing time = 0.00 sec. (0.01 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Root relaxation solution time = 0.00 sec. (0.07 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                           51.0000       23.0000            54.90%
+New incumbent written to file 'solucoes/t1_ID000M003J004_ZintTrue_liao/sol-00001.sol'.
+      0     0       23.0000    13       51.0000       23.0000        9   54.90%
+      0     0       29.0000     5       51.0000      Cuts: 39       22   43.14%
+*     0+    0                           33.0000       29.0000            12.12%
+New incumbent written to file 'solucoes/t1_ID000M003J004_ZintTrue_liao/sol-00002.sol'.
+      0     0       29.0000     4       33.0000      Cuts: 15       37   12.12%
+      0     0       29.0000     6       33.0000      Cuts: 25       56   12.12%
+*     0+    0                           32.0000       29.0000             9.37%
+New incumbent written to file 'solucoes/t1_ID000M003J004_ZintTrue_liao/sol-00003.sol'.
+*     0+    0                           29.0000       29.0000             0.00%
+New incumbent written to file 'solucoes/t1_ID000M003J004_ZintTrue_liao/sol-00004.sol'.
+      0     0        cutoff             29.0000       29.0000       56    0.00%
+Elapsed time = 0.01 sec. (1.68 ticks, tree = 0.01 MB, solutions = 4)
+
+Implied bound cuts applied:  6
+Flow cuts applied:  3
+Mixed integer rounding cuts applied:  13
+Gomory fractional cuts applied:  6
+
+Root node processing (before b&c):
+  Real time             =    0.01 sec. (1.68 ticks)
+Parallel b&c, 8 threads:
+  Real time             =    0.00 sec. (0.00 ticks)
+  Sync time (average)   =    0.00 sec.
+  Wait time (average)   =    0.00 sec.
+                          ------------
+Total (root+branch&cut) =    0.01 sec. (1.68 ticks)

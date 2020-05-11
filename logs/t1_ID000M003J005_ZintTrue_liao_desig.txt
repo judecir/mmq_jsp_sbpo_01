@@ -1,0 +1,47 @@
+CPXPARAM_TimeLimit                               7200
+CPXPARAM_Read_DataCheck                          1
+CPXPARAM_Output_IntSolFilePrefix                 "solucoes/t1_ID000M003J005_ZintTrue_liao_desig/sol"
+Tried aggregator 1 time.
+MIP Presolve eliminated 56 rows and 0 columns.
+MIP Presolve modified 53 coefficients.
+Reduced MIP has 139 rows, 76 columns, and 423 nonzeros.
+Reduced MIP has 30 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.30 ticks)
+Found incumbent of value 70.000000 after 0.00 sec. (0.52 ticks)
+Probing fixed 0 vars, tightened 2 bounds.
+Probing time = 0.00 sec. (0.04 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 139 rows, 76 columns, and 423 nonzeros.
+Reduced MIP has 30 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.20 ticks)
+Probing time = 0.00 sec. (0.04 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Root relaxation solution time = 0.00 sec. (0.44 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                           70.0000       29.0000            58.57%
+New incumbent written to file 'solucoes/t1_ID000M003J005_ZintTrue_liao_desig/sol-00001.sol'.
+*     0+    0                           69.0000       29.0000            57.97%
+New incumbent written to file 'solucoes/t1_ID000M003J005_ZintTrue_liao_desig/sol-00002.sol'.
+      0     0       29.1324    18       69.0000       29.1324       69   57.78%
+*     0+    0                           33.0000       29.1324            11.72%
+New incumbent written to file 'solucoes/t1_ID000M003J005_ZintTrue_liao_desig/sol-00003.sol'.
+      0     0       31.1182    11       33.0000      Cuts: 50      116    5.70%
+      0     0        cutoff             33.0000                    118    0.00%
+Elapsed time = 0.01 sec. (4.40 ticks, tree = 0.01 MB, solutions = 3)
+
+Flow cuts applied:  2
+Mixed integer rounding cuts applied:  2
+
+Root node processing (before b&c):
+  Real time             =    0.01 sec. (4.41 ticks)
+Parallel b&c, 8 threads:
+  Real time             =    0.00 sec. (0.00 ticks)
+  Sync time (average)   =    0.00 sec.
+  Wait time (average)   =    0.00 sec.
+                          ------------
+Total (root+branch&cut) =    0.01 sec. (4.41 ticks)
