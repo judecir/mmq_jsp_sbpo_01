@@ -31,11 +31,7 @@ def read_instance_from_taillard(nome_arquivo):
         if fl_tempo and len(termos) > 0 and termos[0] not in ("Machines", "Times", "Nb"):
             tempo.append([int(t) for t in termos])
         if fl_instancia == True and len(tempo)>0:
-            
-            instancias.append({"id":i
-                       ,"tempo":np.transpose(np.array(tempo))
-                       ,"ordem":np.array(ordem)-1
-                       ,"lista_ub":[0]})
+            instancias.append({"id":i,"tempo":np.transpose(np.array(tempo)), "ordem":np.array(ordem)-1})
             i = i+1
             tempo = []
             ordem = []
@@ -59,10 +55,7 @@ def read_instance_from_taillard(nome_arquivo):
             
     
 
-    instancias.append({"id":i
-                       ,"tempo":np.transpose(np.array(tempo))
-                       ,"ordem":np.array(ordem)-1
-                       ,"lista_ub":[0]})
+    instancias.append({"id":i,"tempo":np.transpose(np.array(tempo)), "ordem":np.array(ordem)-1})
 
     f.close()
 
@@ -81,7 +74,7 @@ def criar_instancias():
                       [0, 2, 1],
                       [2, 0, 1]])
     if jsp_checar_tempo_ordem(tempo, ordem):
-        instancias.append({"id":0, "tempo": tempo, "ordem": ordem, "lista_ub":[0]})
+        instancias.append({"id":0, "tempo": tempo, "ordem": ordem})
     
     #n=5, m=3
     tempo = np.array([[1, 5, 5, 10, 7],
@@ -93,7 +86,7 @@ def criar_instancias():
             		  [2, 0, 1], 
             		  [1, 2, 0]])    
     if jsp_checar_tempo_ordem(tempo, ordem):
-        instancias.append({"id":0, "tempo": tempo, "ordem": ordem, "lista_ub":[0]})
+        instancias.append({"id":0, "tempo": tempo, "ordem": ordem})
         
     arquivos_tai = ["tai15_15.txt", "tai20_15.txt", "tai20_20.txt", "tai30_15.txt", "tai50_15.txt", "tai50_20.txt", "tai100_20.txt"]
 
@@ -102,9 +95,5 @@ def criar_instancias():
         for tai in instancias_tai:
             if jsp_checar_tempo_ordem(tai["tempo"], tai["ordem"]):
                 instancias.append(tai)
-    id= 1
-    for j in range(len(instancias)):
-        instancias[j]["id"] = id
-        id = id +1        
-        
+    
     return instancias

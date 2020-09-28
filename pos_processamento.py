@@ -56,7 +56,7 @@ def criar_df_comparacao(resultado, colunas_comparar = ["problema","funcao_objeti
             df_filtro_real = df_filtro_real.drop(["best_bound", "mip_relative_gap"], axis=1)
             df_filtro_real.columns = coluna_pivot + [m+" "+c for c in df_filtro_real.columns[1:]]
 
-
+        df
             
         filtro_mn_int = (resultado["fl_inteiro"]==True) & (resultado[coluna_pivot[0]]==p) & (resultado["modelo"]=="manne")
         filtro_ml_int = (resultado["fl_inteiro"]==True) & (resultado[coluna_pivot[0]]==p) & (resultado["modelo"]=="minla_fav")
@@ -110,55 +110,3 @@ def estruturar_solucoes_intermed(nome_pasta):
                 for child in ET.parse(nome_pasta+"/"+arq).getroot().findall("header") 
              ]                
     return solucoes
-
-def ler_tabelas_teste(lista_nome_arquivo):
-    df = pd.DataFrame()
-    for arquivo in lista_nome_arquivo:
-        # Formatando arquivo se estiver com erro na escrita (atualmente meu 
-        # codigo esta com esse bug)
-        s = open(arquivo).read()
-        s = s.replace('; ', ';')
-        s = s.replace('; ', ';')
-        f = open(arquivo, 'w')
-        f.write(s)
-        f.close()
-        # Unindo dataframes
-        df = df.append(pd.read_csv(arquivo, sep=";", index_col=False, decimal="."))
-    return df
-
-def criar_tabela_layout_artigo(lista_nome_arquivo = ['solucoes/sbpo/t1_results.csv', 'solucoes/sbpo/t2_results.csv']):
-    # Definindo nome das colunas
-    colunas_instancias = ["problema", "num_jobs", "num_maquina"]
-    colunas_rl = ["funcao_objetivo", "time"]
-    colunas_int = ["funcao_objetivo", "time", "mip_relative_gap"]
-
-    # Lendo tabelas dos arquivos
-    df = ler_tabelas_teste(lista_nome_arquivo)
-    
-    
-    # Renomeando o nome do modelo
-    df["modelo"] = df["modelo"].replace("minla_fav", "manne_desig")
-    
-    # Definindo listas
-    modelos = df["modelo"].unique()
-    fl_inteiro = df["fl_inteiro"].unique()
-    
-    lista_df = []
-    df_retorno = pd.DataFrame(columns = colunas_instancias)
-    for m in modelos:
-        df_modelo = pd.DataFrame(columns = colunas_instancias)
-        for fl in fl_inteiro:
-            filtro = (df["fl_inteiro"] == fl) & \
-                     (df["modelo"]==m)
-            df_aux = df[filtro]
-            if fl:
-                df_aux = df_aux[colunas_instancias+colunas_int]
-                df_aux.columns = colunas_instancias + [m + " - " +c for c in colunas_int]
-            else:
-                df_aux = df_aux[colunas_instancias+colunas_rl]
-                df_aux.columns = colunas_instancias + [m + " - " +c + "(RL)" for c in colunas_rl]
-            df_modelo = pd.merge(df_modelo, df_aux, how="outer", on=colunas_instancias)
-        lista_df.append({"modelo":m, "df":df_modelo})
-        df_retorno = pd.merge(df_retorno, df_modelo, how="outer", on=colunas_instancias)
-    
-    return lista_df, df_retorno
