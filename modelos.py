@@ -6,14 +6,16 @@ from pre_processamento import jsp_checar_tempo_ordem
 # Auxiliares =========================================
 
 # Monta o dicionário para que passamos para as restrições
-def montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro):
+def montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro, lb_cmax=0.0, ub_cmax=-1.0):
     return  {"m":m
             ,"n":n
             ,"Maquinas":Maquinas
             ,"Jobs": Jobs
             ,"tempo":tempo
             ,"ordem":ordem
-            ,"fl_inteiro":fl_inteiro}
+            ,"fl_inteiro":fl_inteiro
+            ,"lb_cmax":lb_cmax
+            ,"ub_cmax":ub_cmax}
 
 # Retorna as dimensões do problema
 def jsp_get_dimensoes(_tempo):
@@ -88,9 +90,13 @@ def jsp_liao_var_q(modelo, Problema):
 # c_max: makespan
 def jsp_manne_var_cmax(modelo, Problema):
     tempo = Problema["tempo"]
+    ub_cmax = Problema["ub_cmax"] #upper bound passado inicialmente para o modelo
     max_p_j=np.max(calcular_p_j(tempo))
-    # Variável para representar o makespan
-    cmax = modelo.continuous_var(lb=max_p_j, name="cmax")
+    # Variável para representar o makespan: max entre o max_p_j e o lb inicialmente
+    if ub_cmax>0:    
+        cmax = modelo.continuous_var(lb=max_p_j, ub=ub_cmax, name="cmax")
+    else:
+        cmax = modelo.continuous_var(lb=max_p_j, name="cmax")
     #cmax = modelo.continuous_var(lb=1210.0, name="cmax") # teste para problema ID000M015J015
     return cmax
 
@@ -327,7 +333,7 @@ def jsp_minla_rest_lb_xik(modelo, x, z, cmax, y, Problema):
     tempo       = Problema["tempo"]
     for i in Maquinas:
         for k in Jobs:
-            modelo.add_constraint(x[i,k] >= modelo.sum(z[i,j,k]*tempo[i,j] for j in Jobs if j<k)
+            modelo.add_lazy_constraint(x[i,k] >= modelo.sum(z[i,j,k]*tempo[i,j] for j in Jobs if j<k)
                                             +modelo.sum((1-z[i,k,j])*tempo[i,j] for j in Jobs if j>k))
 
 # Restricao lower bound da 1a maq de um job considerando os tempos de execucao
@@ -358,8 +364,8 @@ def jsp_minla_rest_lb_xik_p_menos(modelo, x, z, cmax, y, Problema):
                 if j<k:
                     P_menos_i_j = p_menos(tempo, ordem, i, j)
                     P_menos_i_k = p_menos(tempo, ordem, i, k)
-                    modelo.add_constraint(x[i,k] >=     z[i, j, k]*P_menos_i_j)
-                    modelo.add_constraint(x[i,j] >= (1-z[i, j, k])*P_menos_i_k)
+                    modelo.add_lazy_constraint(x[i,k] >=     z[i, j, k]*P_menos_i_j)
+                    modelo.add_lazy_constraint(x[i,j] >= (1-z[i, j, k])*P_menos_i_k)
 
 # Restricao lower bound makespan considerando o tempo de execucao
 # O makespan sera o inicio de um job k que precede outro job j em sua ultima 
@@ -391,7 +397,7 @@ def jsp_minla_rest_lb_cmax_x_p_mais(modelo, x, z, cmax, y, Problema):
     for i in Maquinas:
         for j in Jobs:
             P_mais = p_mais(m, n, tempo, ordem, i, j)
-            modelo.add_constraint(cmax>= x[i,j] + P_mais)
+            modelo.add_lazy_constraint(cmax>= x[i,j] + P_mais)
 
 # Restricao lower bound makespan considerando p mais
 # O makespan sera pelo menos o inicio de um job em uma maquina mais a soma de 
@@ -409,8 +415,8 @@ def jsp_minla_rest_lb_cmax_x_p_mais_k(modelo, x, z, cmax, y, Problema):
                 if j<k:
                     P_mais_i_k = p_mais(m, n, tempo, ordem, i, k)
                     P_mais_i_j = p_mais(m, n, tempo, ordem, i, j)
-                    modelo.add_constraint(cmax>= x[i,j] + tempo[i,j] + z[i, j, k]*P_mais_i_k)
-                    modelo.add_constraint(cmax>= x[i,k] + tempo[i,k] + (1-z[i, j, k])*P_mais_i_j)
+                    modelo.add_lazy_constraint(cmax>= x[i,j] + tempo[i,j] + z[i, j, k]*P_mais_i_k)
+                    modelo.add_lazy_constraint(cmax>= x[i,k] + tempo[i,k] + (1-z[i, j, k])*P_mais_i_j)
 
 # Restricao que limita o inicio de um job para o termino do seu anterior
 # e todos os jobs a soma do tempo de processamento de todos entre eles
@@ -501,16 +507,14 @@ def jsp_liao_folga(modelo, x, z, cmax, y, s, q, Problema):
         for j in Jobs:
             for k in Jobs:
                 if j<k:
-                    modelo.add_constraint(P*z[i,j,k]+x[i,j]-x[i,k]-tempo[i,k] == q[i,j,k])
                     #modelo.add_constraint(q[i,j,k] <= P - tempo[i,j] - tempo[i,k])
-    
-    
+                    modelo.add_constraint(P*z[i,j,k]+x[i,j]-x[i,k]-tempo[i,k] == q[i,j,k])
 # ====================================================
 
 # Modelos ============================================
 
 # Modelo Disjuntivo de Manne
-def jsp_disjuntivo_manne(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
+def jsp_disjuntivo_manne(tempo, ordem, tempo_max = 3600, fl_inteiro=True, lb_cmax=0.0, ub_cmax=-1.0):
     if not jsp_checar_tempo_ordem(tempo, ordem):
         print("Matrizes de TEMPO e ORDEM incorretas!")
     
@@ -525,7 +529,7 @@ def jsp_disjuntivo_manne(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
     ###########################################################################
     
     # Criando dicionario do Problema ##########################################
-    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro)
+    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro, lb_cmax, ub_cmax)
     ###########################################################################
    
     # Criando instancia do modelo #############################################
@@ -554,7 +558,7 @@ def jsp_disjuntivo_manne(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
     return modelo
 
 # Modelo de Manne com restrições do MinLA
-def jsp_disjuntivo_minla(tempo, ordem, tempo_max=3600, fl_inteiro=True, restricoes=[jsp_manne_rest_ordem_maq_job, jsp_manne_rest_precedencia, jsp_manne_rest_makespan]):
+def jsp_disjuntivo_minla(tempo, ordem, tempo_max=3600, fl_inteiro=True, restricoes=[jsp_manne_rest_ordem_maq_job, jsp_manne_rest_precedencia, jsp_manne_rest_makespan], lb_cmax=0.0, ub_cmax=-1.0):
     if not jsp_checar_tempo_ordem(tempo, ordem):
         print("Matrizes de TEMPO e ORDEM incorretas!")
     
@@ -568,7 +572,7 @@ def jsp_disjuntivo_minla(tempo, ordem, tempo_max=3600, fl_inteiro=True, restrico
     ###########################################################################
     
     # Criando dicionario do Problema ##########################################
-    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro)
+    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro, lb_cmax, ub_cmax)
     ###########################################################################
     
     # Criando instancia do modelo #############################################
@@ -617,7 +621,7 @@ def jsp_disjuntivo_minla(tempo, ordem, tempo_max=3600, fl_inteiro=True, restrico
     return modelo
 
 # Modelo de Manne com as melhores restrições do MinLA
-def jsp_disjuntivo_minla_favorito(tempo, ordem, tempo_max=3600, fl_inteiro=True):
+def jsp_disjuntivo_minla_favorito(tempo, ordem, tempo_max=3600, fl_inteiro=True, lb_cmax=0.0, ub_cmax=-1.0):
     if not jsp_checar_tempo_ordem(tempo, ordem):
         print("Matrizes de TEMPO e ORDEM incorretas!")
     
@@ -631,7 +635,7 @@ def jsp_disjuntivo_minla_favorito(tempo, ordem, tempo_max=3600, fl_inteiro=True)
     ###########################################################################
     
     # Criando dicionario do Problema ##########################################
-    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro)
+    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro, lb_cmax, ub_cmax)
     ###########################################################################
     
     # Criando instancia do modelo #############################################
@@ -653,7 +657,7 @@ def jsp_disjuntivo_minla_favorito(tempo, ordem, tempo_max=3600, fl_inteiro=True)
     
     jsp_manne_rest_ordem_maq_job(modelo, x, z, cmax, y, Problema)
     jsp_manne_rest_precedencia(modelo, x, z, cmax, y, Problema)
-    #jsp_manne_rest_makespan(modelo, x, z, cmax, y, Problema)
+    jsp_manne_rest_makespan(modelo, x, z, cmax, y, Problema)
     #jsp_minla_rest_disj_mais_proc(modelo, x, z, cmax, y, s, Problema)
     #jsp_minla_rest_disj_mais_proc_linear(modelo, x, z, cmax, y, s, Problema)
     
@@ -675,7 +679,7 @@ def jsp_disjuntivo_minla_favorito(tempo, ordem, tempo_max=3600, fl_inteiro=True)
     return modelo
 
 # Modelo de Liao
-def jsp_liao(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
+def jsp_liao(tempo, ordem, tempo_max = 3600, fl_inteiro=True, lb_cmax=0.0, ub_cmax=-1.0):
     if not jsp_checar_tempo_ordem(tempo, ordem):
         print("Matrizes de TEMPO e ORDEM incorretas!")
     
@@ -690,7 +694,7 @@ def jsp_liao(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
     ###########################################################################
     
     # Criando dicionario do Problema ##########################################
-    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro)
+    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro, lb_cmax, ub_cmax)
     ###########################################################################
    
     # Criando instancia do modelo #############################################
@@ -723,7 +727,7 @@ def jsp_liao(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
     return modelo
 
 # Modelo de Liao
-def jsp_liao_desigualdades(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
+def jsp_liao_desigualdades(tempo, ordem, tempo_max = 3600, fl_inteiro=True, lb_cmax=0.0, ub_cmax=-1.0):
     if not jsp_checar_tempo_ordem(tempo, ordem):
         print("Matrizes de TEMPO e ORDEM incorretas!")
     
@@ -737,7 +741,7 @@ def jsp_liao_desigualdades(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
     ###########################################################################
     
     # Criando dicionario do Problema ##########################################
-    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro)
+    Problema = montar_dic_problema(m, n, Maquinas, Jobs, tempo, ordem, fl_inteiro, lb_cmax, ub_cmax)
     ###########################################################################
    
     # Criando instancia do modelo #############################################
@@ -759,7 +763,7 @@ def jsp_liao_desigualdades(tempo, ordem, tempo_max = 3600, fl_inteiro=True):
     
     jsp_liao_folga(modelo, x, z, cmax, y, s, q, Problema)
     
-    jsp_manne_rest_makespan(modelo, x, z, cmax, y, Problema)
+    #jsp_manne_rest_makespan(modelo, x, z, cmax, y, Problema)
     
      # baseadas nas sugestoes do prof. Christophe/
     jsp_minla_rest_lb_xik(modelo, x, z, cmax, y, Problema)
